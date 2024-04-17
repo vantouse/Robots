@@ -4,15 +4,15 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.beans.PropertyVetoException;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.*;
-import java.util.List;
 
 import javax.swing.*;
 
 import log.Logger;
+
+import features.FrameSettingsHandler;
 
 /**
  * Что требуется сделать:
@@ -20,65 +20,57 @@ import log.Logger;
  * Следует разделить его на серию более простых методов (или вообще выделить отдельный класс).
  */
 public class MainApplicationFrame extends JFrame {
-    private final JDesktopPane desktopPane = new JDesktopPane();
+    // private final JDesktopPane desktopPane = new JDesktopPane();
+    // (unable to pass private object into FrameSettingsHandler functions as argument)
+    public final JDesktopPane desktopPane = new JDesktopPane();
     public final LogWindow logWindow = createLogWindow();
+//    public final LogWindow logWindow = new LogWindow(Logger.getDefaultLogSource());
     public final GameWindow gameWindow = new GameWindow();
     public static String lang = "ru";
     public static String country = "RU";
     public static Locale loc = new Locale(lang, country);
-    public static ResourceBundle res = ResourceBundle.getBundle("resources", loc);
-    public static Properties geo = new Properties();
-    static {
-        try {
-            geo.load(new FileInputStream("geometry.properties"));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
+    public static String projHomeDir = System.getProperty("user.dir");
+    public static ResourceBundle langResources = ResourceBundle.getBundle("resources", loc);
+    public static FrameSettingsHandler fsh = new FrameSettingsHandler();
 
     void buttonsLocalize() {
-        UIManager.put("OptionPane.yesButtonText", res.getString("yesButtonText"));
-        UIManager.put("OptionPane.noButtonText", res.getString("noButtonText"));
-        UIManager.put("OptionPane.cancelButtonText", res.getString("cancelButtonText"));
-        UIManager.put("OptionPane.okButtonText", res.getString("okButtonText"));
+        UIManager.put("OptionPane.yesButtonText", langResources.getString("yesButtonText"));
+        UIManager.put("OptionPane.noButtonText", langResources.getString("noButtonText"));
+        UIManager.put("OptionPane.cancelButtonText", langResources.getString("cancelButtonText"));
+        UIManager.put("OptionPane.okButtonText", langResources.getString("okButtonText"));
 
-        UIManager.put("InternalFrame.iconButtonToolTip", res.getString("minimizeButtonText"));
-        UIManager.put("InternalFrame.maxButtonToolTip", res.getString("maximizeButtonText"));
-        UIManager.put("InternalFrame.closeButtonToolTip", res.getString("closeButtonText"));
+        UIManager.put("InternalFrame.iconButtonToolTip", langResources.getString("minimizeButtonText"));
+        UIManager.put("InternalFrame.maxButtonToolTip", langResources.getString("maximizeButtonText"));
+        UIManager.put("InternalFrame.closeButtonToolTip", langResources.getString("closeButtonText"));
 
-        UIManager.put("InternalFrameTitlePane.minimizeButtonAccessibleName", res.getString("minimizeButtonText"));
-        UIManager.put("InternalFrameTitlePane.maximizeButtonAccessibleName", res.getString("maximizeButtonText"));
-        UIManager.put("InternalFrameTitlePane.closeButtonAccessibleName", res.getString("closeButtonText"));
+        UIManager.put("InternalFrameTitlePane.minimizeButtonAccessibleName", langResources.getString("minimizeButtonText"));
+        UIManager.put("InternalFrameTitlePane.maximizeButtonAccessibleName", langResources.getString("maximizeButtonText"));
+        UIManager.put("InternalFrameTitlePane.closeButtonAccessibleName", langResources.getString("closeButtonText"));
 
-        UIManager.put("InternalFrameTitlePane.restoreButtonText", res.getString("maximizeButtonText"));
-        UIManager.put("InternalFrameTitlePane.moveButtonText", res.getString("moveButtonText"));
-        UIManager.put("InternalFrameTitlePane.sizeButtonText", res.getString("sizeButtonText"));
-        UIManager.put("InternalFrameTitlePane.minimizeButtonText", res.getString("minimizeButtonText"));
-        UIManager.put("InternalFrameTitlePane.maximizeButtonText", res.getString("maximizeButtonText"));
-        UIManager.put("InternalFrameTitlePane.closeButtonText", res.getString("closeButtonText"));
+        UIManager.put("InternalFrameTitlePane.restoreButtonText", langResources.getString("maximizeButtonText"));
+        UIManager.put("InternalFrameTitlePane.moveButtonText", langResources.getString("moveButtonText"));
+        UIManager.put("InternalFrameTitlePane.sizeButtonText", langResources.getString("sizeButtonText"));
+        UIManager.put("InternalFrameTitlePane.minimizeButtonText", langResources.getString("minimizeButtonText"));
+        UIManager.put("InternalFrameTitlePane.maximizeButtonText", langResources.getString("maximizeButtonText"));
+        UIManager.put("InternalFrameTitlePane.closeButtonText", langResources.getString("closeButtonText"));
     }
 
-    public MainApplicationFrame() throws PropertyVetoException {
-        //Make the big window be indented 50 pixels from each edge
-        //of the screen.
+    public MainApplicationFrame() throws PropertyVetoException, IOException {
+        // Make the big window be indented 50 pixels from each edge of the screen
         int inset = 50;
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        setBounds(inset, inset,
-                screenSize.width - inset * 2,
-                screenSize.height - inset * 2);
+//        setBounds(inset, inset,
+//                screenSize.width - inset * 2,
+//                screenSize.height - inset * 2);
+
+        // Set up main application frame
+        this.setVisible(true);
         setContentPane(desktopPane);
-
-        LogWindow logWindow = createLogWindow();
         addWindow(logWindow);
-
-        GameWindow gameWindow = new GameWindow();
-        gameWindow.setLocation(Integer.parseInt(geo.getProperty("gameWindowX")), Integer.parseInt(geo.getProperty("gameWindowY")));
-        gameWindow.setSize(Integer.parseInt(geo.getProperty("gameWindowWidth")), Integer.parseInt(geo.getProperty("gameWindowHeight")));
         addWindow(gameWindow);
-        if (geo.getProperty("gameWindowIconified").equals("true")) {
-            gameWindow.setIcon(true);
-        }
+
+        // Restore state of all active frames
+        fsh.restoreAppFrameState(this);
 
         setJMenuBar(generateMenuBar());
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -88,14 +80,7 @@ public class MainApplicationFrame extends JFrame {
 
     protected LogWindow createLogWindow() throws PropertyVetoException {
         LogWindow logWindow = new LogWindow(Logger.getDefaultLogSource());
-        logWindow.setLocation(Integer.parseInt(geo.getProperty("logWindowX")), Integer.parseInt(geo.getProperty("logWindowY")));
-        logWindow.setSize(Integer.parseInt(geo.getProperty("logWindowWidth")), Integer.parseInt(geo.getProperty("logWindowHeight")));
-        setMinimumSize(logWindow.getSize());
-        logWindow.pack();
-        if (geo.getProperty("logWindowIconified").equals("true")) {
-            gameWindow.setIcon(true);
-        }
-        Logger.debug(res.getString("logMessageDefault"));
+        Logger.debug(langResources.getString("logMessageDefault"));
         return logWindow;
     }
 
@@ -105,32 +90,23 @@ public class MainApplicationFrame extends JFrame {
     }
 
     public void exitApplication() throws IOException {
+        // Confirm saving frame settings
+        int option_fsh = JOptionPane.showConfirmDialog(null,
+                langResources.getString("fshConfirm"), langResources.getString("fshItem"),
+                JOptionPane.YES_NO_OPTION);
+        if (option_fsh == JOptionPane.YES_OPTION) {
+            fsh.saveAppFrameState(this);
+        }
+
+        //Confirm exit
         int answer = JOptionPane.showConfirmDialog(null,
-                res.getString("exitConfirm"), res.getString("exitItem"), JOptionPane.YES_NO_OPTION);
+                langResources.getString("exitConfirm"), langResources.getString("exitItem"), JOptionPane.YES_NO_OPTION);
         if (answer == JOptionPane.YES_OPTION) {
-            saveFrameSettings();
             Runtime.getRuntime().exit(0);
         }
     }
 
-    private void saveFrameSettings() throws IOException {
-        FileOutputStream geo_file = new FileOutputStream("geometry.properties");
 
-        geo.setProperty("logWindowX", String.valueOf(logWindow.getBounds().x));
-        geo.setProperty("logWindowY", String.valueOf(logWindow.getBounds().y));
-        geo.setProperty("logWindowWidth", String.valueOf(logWindow.getBounds().width));
-        geo.setProperty("logWindowHeight", String.valueOf(logWindow.getBounds().height));
-        geo.setProperty("logWindowIconified", String.valueOf(logWindow.isIcon()));
-
-        geo.setProperty("gameWindowX", String.valueOf(gameWindow.getBounds().x));
-        geo.setProperty("gameWindowY", String.valueOf(gameWindow.getBounds().y));
-        geo.setProperty("gameWindowWidth", String.valueOf(gameWindow.getBounds().width));
-        geo.setProperty("gameWindowHeight", String.valueOf(gameWindow.getBounds().height));
-        geo.setProperty("gameWindowIconified", String.valueOf(logWindow.isIcon()));
-
-        geo.store(geo_file, null);
-        geo_file.close();
-    }
 //    protected JMenuBar createMenuBar() {
 //        JMenuBar menuBar = new JMenuBar();
 // 
@@ -163,13 +139,13 @@ public class MainApplicationFrame extends JFrame {
     private JMenuBar generateMenuBar() {
         JMenuBar menuBar = new JMenuBar();
 
-        JMenu lookAndFeelMenu = new JMenu(res.getString("lookAndFeelMenu"));
+        JMenu lookAndFeelMenu = new JMenu(langResources.getString("lookAndFeelMenu"));
         lookAndFeelMenu.setMnemonic(KeyEvent.VK_V);
         lookAndFeelMenu.getAccessibleContext().setAccessibleDescription(
-                res.getString("lookAndFeelMenuDescript"));
+                langResources.getString("lookAndFeelMenuDescript"));
 
         {
-            JMenuItem systemLookAndFeel = new JMenuItem(res.getString("systemLookAndFeel"), KeyEvent.VK_S);
+            JMenuItem systemLookAndFeel = new JMenuItem(langResources.getString("systemLookAndFeel"), KeyEvent.VK_S);
             systemLookAndFeel.addActionListener((event) -> {
                 setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
                 this.invalidate();
@@ -178,7 +154,7 @@ public class MainApplicationFrame extends JFrame {
         }
 
         {
-            JMenuItem crossplatformLookAndFeel = new JMenuItem(res.getString("crossplatformLookAndFeel"), KeyEvent.VK_S);
+            JMenuItem crossplatformLookAndFeel = new JMenuItem(langResources.getString("crossplatformLookAndFeel"), KeyEvent.VK_S);
             crossplatformLookAndFeel.addActionListener((event) -> {
                 setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
                 this.invalidate();
@@ -186,26 +162,26 @@ public class MainApplicationFrame extends JFrame {
             lookAndFeelMenu.add(crossplatformLookAndFeel);
         }
 
-        JMenu testMenu = new JMenu(res.getString("testMenu"));
+        JMenu testMenu = new JMenu(langResources.getString("testMenu"));
         testMenu.setMnemonic(KeyEvent.VK_T);
         testMenu.getAccessibleContext().setAccessibleDescription(
-                res.getString("testCommands"));
+                langResources.getString("testCommands"));
 
         {
-            JMenuItem addLogMessageItem = new JMenuItem(res.getString("addLogMessageItem"), KeyEvent.VK_S);
+            JMenuItem addLogMessageItem = new JMenuItem(langResources.getString("addLogMessageItem"), KeyEvent.VK_S);
             addLogMessageItem.addActionListener((event) -> {
-                Logger.debug(res.getString("logMessageNewStr"));
+                Logger.debug(langResources.getString("logMessageNewStr"));
             });
             testMenu.add(addLogMessageItem);
         }
 
-        JMenu exitMenu = new JMenu(res.getString("exitMenu"));
+        JMenu exitMenu = new JMenu(langResources.getString("exitMenu"));
         testMenu.setMnemonic(KeyEvent.VK_E);
         testMenu.getAccessibleContext().setAccessibleDescription(
                 "Тестовые команды");
 
         {
-            JMenuItem exitItem = new JMenuItem(res.getString("exitItem"), KeyEvent.VK_S);
+            JMenuItem exitItem = new JMenuItem(langResources.getString("exitItem"), KeyEvent.VK_S);
             exitItem.addActionListener((event) -> {
                 try {
                     exitApplication();
