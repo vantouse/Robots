@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<comment>Frame configuration</comment>
+<entry key="gui.MainApplicationFrameWidth">1382</entry>
+<entry key="gui.MainApplicationFrameY">-8</entry>
+<entry key="gui.GameWindowWidth">609</entry>
+<entry key="gui.LogWindowIconified">false</entry>
+<entry key="gui.LogWindowWidth">408</entry>
+<entry key="gui.GameWindowX">757</entry>
+<entry key="gui.GameWindowY">287</entry>
+<entry key="gui.LogWindowHeight">682</entry>
+<entry key="gui.GameWindowIconified">false</entry>
+<entry key="gui.LogWindowY">0</entry>
+<entry key="gui.GameWindowHeight">395</entry>
+<entry key="gui.MainApplicationFrameHeight">744</entry>
+<entry key="gui.LogWindowX">0</entry>
+<entry key="gui.MainApplicationFrameX">-8</entry>
+<entry key="gui.MainApplicationFrameIconified">6</entry>
+</properties>
