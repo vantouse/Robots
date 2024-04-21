@@ -24,8 +24,8 @@ public class MainApplicationFrame extends JFrame {
     // (unable to pass private object into FrameSettingsHandler functions as argument)
     public final JDesktopPane desktopPane = new JDesktopPane();
     public final LogWindow logWindow = createLogWindow();
-//    public final LogWindow logWindow = new LogWindow(Logger.getDefaultLogSource());
     public final GameWindow gameWindow = new GameWindow();
+    public final PositionWindow posWindow = new PositionWindow(gameWindow.getActiveRobot());
     public static String lang = "ru";
     public static String country = "RU";
     public static Locale loc = new Locale(lang, country);
@@ -68,6 +68,7 @@ public class MainApplicationFrame extends JFrame {
         setContentPane(desktopPane);
         addWindow(logWindow);
         addWindow(gameWindow);
+        addWindow(posWindow);
 
         // Restore state of all active frames
         fsh.restoreAppFrameState(this);
@@ -109,12 +110,12 @@ public class MainApplicationFrame extends JFrame {
 
 //    protected JMenuBar createMenuBar() {
 //        JMenuBar menuBar = new JMenuBar();
-// 
+//
 //        //Set up the lone menu.
 //        JMenu menu = new JMenu("Document");
 //        menu.setMnemonic(KeyEvent.VK_D);
 //        menuBar.add(menu);
-// 
+//
 //        //Set up the first menu item.
 //        JMenuItem menuItem = new JMenuItem("New");
 //        menuItem.setMnemonic(KeyEvent.VK_N);
@@ -123,7 +124,7 @@ public class MainApplicationFrame extends JFrame {
 //        menuItem.setActionCommand("new");
 ////        menuItem.addActionListener(this);
 //        menu.add(menuItem);
-// 
+//
 //        //Set up the second menu item.
 //        menuItem = new JMenuItem("Quit");
 //        menuItem.setMnemonic(KeyEvent.VK_Q);
@@ -132,7 +133,7 @@ public class MainApplicationFrame extends JFrame {
 //        menuItem.setActionCommand("quit");
 ////        menuItem.addActionListener(this);
 //        menu.add(menuItem);
-// 
+//
 //        return menuBar;
 //    }
 

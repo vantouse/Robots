@@ -9,20 +9,7 @@ import java.beans.PropertyVetoException;
 import java.io.*;
 import java.util.*;
 
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-
 import gui.MainApplicationFrame;
-import org.w3c.dom.*;
-import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
-import org.w3c.dom.Node;
-import org.w3c.dom.Element;
 
 
 public class FrameSettingsHandler {
@@ -82,15 +69,24 @@ public class FrameSettingsHandler {
             JInternalFrame[] internalFrames = frameMain.desktopPane.getAllFrames();
             for (JInternalFrame internalFrame : internalFrames) {
                 prefix = internalFrame.getClass().toString().replaceAll("^class ", "");
-                internalFrame.setBounds(
-                        Integer.parseInt(frameGeom.getProperty(prefix + "X")),
-                        Integer.parseInt(frameGeom.getProperty(prefix + "Y")),
-                        Integer.parseInt(frameGeom.getProperty(prefix + "Width")),
-                        Integer.parseInt(frameGeom.getProperty(prefix + "Height"))
-                );
-                internalFrame.setIcon(
-                        Boolean.parseBoolean(frameGeom.getProperty(prefix + "Iconified"))
-                );
+                if (frameGeom.containsKey(prefix + "X") && frameGeom.containsKey(prefix + "Y")
+                        && frameGeom.containsKey(prefix + "Width") && frameGeom.containsKey(prefix + "Height")
+                        && frameGeom.containsKey(prefix + "Iconified")) {
+                    internalFrame.setBounds(
+                            Integer.parseInt(frameGeom.getProperty(prefix + "X")),
+                            Integer.parseInt(frameGeom.getProperty(prefix + "Y")),
+                            Integer.parseInt(frameGeom.getProperty(prefix + "Width")),
+                            Integer.parseInt(frameGeom.getProperty(prefix + "Height"))
+                    );
+                    internalFrame.setIcon(
+                            Boolean.parseBoolean(frameGeom.getProperty(prefix + "Iconified"))
+                    );
+                }
+                else {
+                    // Default values if geometry config not found
+                    internalFrame.setBounds(0, 0, 0, 0);
+                    internalFrame.setIcon(true);
+                }
             }
         }
         catch (IOException | PropertyVetoException e) {
